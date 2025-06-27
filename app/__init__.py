@@ -20,4 +20,8 @@ def create_app():
 
    app.register_blueprint(bp_api)
    app.register_blueprint(bp_auth)
+
+   @app.route('/')
+   def index():
+      return {"message": "Nothing here."}
    return app
