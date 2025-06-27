@@ -1,15 +1,22 @@
 # backend/routes/auth.py
 from flask import Blueprint, redirect, session, request, url_for, jsonify, make_response
 from google_auth_oauthlib.flow import Flow
+from dotenv import load_dotenv
 import os, requests
+
+load_dotenv()
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+BACKEND_DOMAIN = os.getenv('BACKEND_DOMAIN')
+FRONTEND_DOMAIN = os.getenv('FRONTEND_DOMAIN')
+
+
 
 bp_auth = Blueprint('auth', __name__, url_prefix='/auth')
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # solo en desarrollo
 
-GOOGLE_CLIENT_ID = '1021973608039-7g17daqorh4iarl0ajmbjj5drp6e3qlj.apps.googleusercontent.com'
-GOOGLE_CLIENT_SECRET = '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'
-REDIRECT_URI = 'http://localhost:5000/auth/callback'
+REDIRECT_URI = f'{BACKEND_DOMAIN}/auth/callback'      #'http://localhost:5000/auth/callback'
 
 SCOPES = [
   "openid",
@@ -97,7 +104,7 @@ def auth_callback():
       }
       session['profile'] = profile
       session['credentials'] = credentials
-      response = make_response(redirect("http://localhost:3000/dashboard"))
+      response = make_response(redirect(f'{FRONTEND_DOMAIN}/dashboard'))      #http://localhost:3000/dashboard
       # response.set_cookie("name", profile['name'], httponly=False, max_age=3600)
       # response.set_cookie("picture", profile['picture'], httponly=False, max_age=36000)
       response.get_json
@@ -112,7 +119,10 @@ def me():
    profile = session.get('profile')
    print('PROFILE: ', profile)
    if not profile:
-      return jsonify({"error": "No autenticado"}), 401
+      response = make_response(jsonify({'message': 'Session cerrada'}), 200)
+      response.set_cookie('session', '', expires=0)  # Borra la cookie de sesión
+      response.delete_cookie('session')
+      return response
    return jsonify(profile)
 
 @bp_auth.route("/logout", methods=['POST'])
