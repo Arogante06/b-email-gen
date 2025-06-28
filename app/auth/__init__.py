@@ -104,11 +104,10 @@ def auth_callback():
       }
       session['profile'] = profile
       session['credentials'] = credentials
+
       response = make_response(redirect(f'{FRONTEND_DOMAIN}/dashboard'))      #http://localhost:3000/dashboard
-      # response.set_cookie("name", profile['name'], httponly=False, max_age=3600)
-      # response.set_cookie("picture", profile['picture'], httponly=False, max_age=36000)
-      response.get_json
       return response
+      # return jsonify({"redirect_to": f"{FRONTEND_DOMAIN}/dashboard"}), 200
    except Exception as e:
       print("Error en callback:", str(e))
       return jsonify({"error": str(e)}), 500
@@ -119,11 +118,11 @@ def me():
    profile = session.get('profile')
    print('PROFILE: ', profile)
    if not profile:
-      response = make_response(jsonify({'message': 'Session cerrada'}), 200)
+      response = make_response(jsonify({'message': 'Withour session profile'}), 401)
       response.set_cookie('session', '', expires=0)  # Borra la cookie de sesión
       response.delete_cookie('session')
       return response
-   return jsonify(profile)
+   return jsonify(profile), 200
 
 @bp_auth.route("/logout", methods=['POST'])
 def logout():
